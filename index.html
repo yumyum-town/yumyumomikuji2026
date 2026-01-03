@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>yumyum運勢おみくじ</title>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --yum-yellow: #FFEB3B;
+            --yum-orange: #FF9800;
+            --yum-green: #4CAF50;
+            --yum-text: #5D4037;
+            --yum-white: #FFFFFF;
+        }
+
+        body {
+            font-family: 'M PLUS Rounded 1c', sans-serif, "Hiragino Sans", "Meiryo", "Apple SD Gothic Neo", "Malgun Gothic", "Microsoft JhengHei";
+            background-color: var(--yum-yellow);
+            color: var(--yum-text);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* 言語切替ボタン */
+        .lang-selector {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            z-index: 100;
+        }
+
+        .lang-btn {
+            background: var(--yum-white);
+            border: 2px solid var(--yum-orange);
+            border-radius: 15px;
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .lang-btn.active {
+            background: var(--yum-orange);
+            color: white;
+        }
+
+        .app-container {
+            width: 90%;
+            max-width: 450px;
+            background-color: var(--yum-white);
+            border: 6px solid var(--yum-orange);
+            border-radius: 30px;
+            padding: 30px 20px;
+            box-shadow: 0 10px 0 rgba(0,0,0,0.1);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            margin-top: 40px;
+        }
+
+        h1 {
+            font-size: 1.3rem;
+            color: var(--yum-orange);
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            background: var(--yum-green);
+            color: white;
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+        }
+
+        .omikuji-asset-container {
+            width: 220px;
+            height: 220px;
+            margin: 20px auto;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .omikuji-asset-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .shake { animation: shakeAnim 0.3s infinite; }
+        @keyframes shakeAnim {
+            0% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(8deg) scale(1.05); }
+            50% { transform: rotate(0deg) scale(1); }
+            75% { transform: rotate(-8deg) scale(1.05); }
+            100% { transform: rotate(0deg) scale(1); }
+        }
+
+        #draw-btn {
+            background-color: var(--yum-orange);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #E65100;
+            font-family: inherit;
+            transition: all 0.2s;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        #draw-btn:active { transform: translateY(3px); box-shadow: none; }
+        #draw-btn:disabled { background-color: #ccc; box-shadow: none; cursor: not-allowed; }
+
+        #result-area {
+            display: none;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .result-title {
+            font-size: 1.6rem;
+            color: var(--yum-orange);
+            margin: 15px 0;
+        }
+
+        .char-frame {
+            width: 100%;
+            height: 250px;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .char-frame img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .fortune-text {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            padding: 0 10px;
+            word-break: break-word;
+        }
+
+        .lucky-food-box {
+            background-color: #FFF9C4;
+            padding: 12px;
+            border-radius: 10px;
+            border-left: 5px solid var(--yum-green);
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .download-btn {
+            display: block;
+            background-color: var(--yum-green);
+            color: white;
+            text-decoration: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 0 #2E7D32;
+            margin-bottom: 15px;
+        }
+
+        .share-message-container {
+            background-color: #FFF0F5;
+            padding: 15px;
+            border-radius: 15px;
+            border: 2px solid #FFB6C1;
+        }
+
+        .share-message {
+            font-size: 0.85rem;
+            color: var(--yum-text);
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .retry-btn {
+            background: none;
+            border: none;
+            color: #888;
+            text-decoration: underline;
+            cursor: pointer;
+            margin-top: 25px;
+            font-family: inherit;
+        }
+    </style>
+</head>
+<body>
+
+<div class="lang-selector">
+    <button class="lang-btn active" onclick="setLanguage('ja')">JP</button>
+    <button class="lang-btn" onclick="setLanguage('en')">EN</button>
+    <button class="lang-btn" onclick="setLanguage('ko')">KR</button>
+    <button class="lang-btn" onclick="setLanguage('zh')">TW</button>
+</div>
+
+<div class="app-container">
+    <div id="main-view">
+        <div class="subtitle" id="ui-main-subtitle">yumyum town おみくじ</div>
+        <h1 id="ui-title">yumyum運勢おみくじ<br>ーyum運上昇壁紙付きー</h1>
+        
+        <div class="omikuji-asset-container" id="box-container">
+            <img id="omikuji-img" src="box.PNG" alt="box">
+        </div>
+        
+        <p id="ui-intro">住人たちがあなたのyum運を占うよ！<br>上の画像をタップするか、下のボタンを押してね！</p>
+        <button id="draw-btn">yum運を占う！</button>
+    </div>
+
+    <div id="result-area">
+        <div class="subtitle" id="ui-res-subtitle">おみくじ結果</div>
+        <h2 class="result-title" id="res-name"></h2>
+        
+        <div class="char-frame">
+            <img id="res-img" src="" alt="result">
+        </div>
+
+        <p class="fortune-text" id="res-desc"></p>
+        
+        <div class="lucky-food-box">
+            <strong id="ui-lucky-food-label">🍴 ラッキーフード</strong><br>
+            <span id="res-food"></span>
+        </div>
+
+        <a href="#" id="download-link" class="download-btn" target="_blank">🎁 壁紙をゲットする</a>
+        
+        <div class="share-message-container">
+            <p class="share-message" id="ui-share-msg">Instagramでメンションしてくれたら<br>住人たちがとっても喜ぶよ✨</p>
+        </div>
+
+        <button class="retry-btn" id="ui-retry-btn" onclick="location.reload()">もう一度引く</button>
+    </div>
+</div>
+
+<script>
+    const i18n = {
+        ja: {
+            mainSubtitle: "yumyum town おみくじ",
+            title: "yumyum運勢おみくじ<br>ーyum運上昇壁紙付きー",
+            intro: "住人たちがあなたのyum運を占うよ！<br>上の画像をタップするか、下のボタンを押してね！",
+            drawBtn: "yum運を占う！",
+            drawing: "占いちゅう・・・",
+            resSubtitle: "おみくじ結果",
+            luckyLabel: "🍴 ラッキーフード",
+            download: "🎁 壁紙をゲットする",
+            share: "Instagramでメンションしてくれたら<br>住人たちがとっても喜ぶよ✨",
+            retry: "もう一度引く"
+        },
+        en: {
+            mainSubtitle: "yumyum town Omikuji",
+            title: "yumyum Fortune Omikuji<br>with Lucky Wallpaper",
+            intro: "The residents will tell your fortune!<br>Tap the box or the button below!",
+            drawBtn: "Draw Fortune!",
+            drawing: "Drawing...",
+            resSubtitle: "Result",
+            luckyLabel: "🍴 Lucky Food",
+            download: "🎁 Get Wallpaper",
+            share: "Mention us on Instagram!<br>The residents will be so happy✨",
+            retry: "Try Again"
+        },
+        ko: {
+            mainSubtitle: "yumyum town 오미쿠지",
+            title: "yumyum 운세 뽑기<br>ー운세 상승 배경화면 포함ー",
+            intro: "주민들이 당신의 운세를 점쳐줄게요!<br>위의 이미지를 탭하거나 아래 버튼을 눌러주세요!",
+            drawBtn: "운세 점치기!",
+            drawing: "점치는 중...",
+            resSubtitle: "결과",
+            luckyLabel: "🍴 행운의 음식",
+            download: "🎁 배경화면 받기",
+            share: "인스타그램에서 언급해주시면<br>주민들이 정말 기뻐할 거예요✨",
+            retry: "다시 하기"
+        },
+        zh: {
+            mainSubtitle: "yumyum town 抽籤",
+            title: "yumyum 運勢抽籤<br>ー附贈運勢上升桌布ー",
+            intro: "居民們會為你占卜運勢哦！<br>請點擊上方圖片或下方按鈕！",
+            drawBtn: "占卜運勢！",
+            drawing: "占卜中...",
+            resSubtitle: "占卜結果",
+            luckyLabel: "🍴 幸運食物",
+            download: "🎁 領取桌布",
+            share: "在 Instagram 上標記我們的話<br>居民們會非常開心的✨",
+            retry: "再抽一次"
+        }
+    };
+
+    const fortunes = [
+        {
+            name: { ja: "ケチャ&オム吉", en: "Kecha&Omu Luck", ko: "Kecha&Omu 길(吉)", zh: "Kecha&Omu 吉" },
+            desc: { 
+                ja: "お散歩したり、ふんわり空を飛びながら<br>街を散策するとyummyな出会いがあるかも！",
+                en: "Take a stroll or fly through the sky.<br>A yummy encounter awaits!",
+                ko: "산책하거나 둥실둥실 하늘을 날며<br>마을을 산책하면 맛있는 만남이 있을지도!",
+                zh: "散散步或在天空中飛翔探索城市，<br>可能會遇到美味的邂逅哦！"
+            },
+            food: { ja: "オムライスとケチャップ", en: "Omurice and Ketchup", ko: "오므라이스와 케첩", zh: "蛋包飯與番茄醬" },
+            img: "1kechaomu.JPG",
+            wallpaper: "wallpaper1.png",
+            weight: 19
+        },
+        {
+            name: { ja: "ボゴ&チップス吉", en: "Bogo＆Chips Luck", ko: "Bogo＆Chips 길(吉)", zh: "Bogo＆Chips 吉" },
+            desc: { 
+                ja: "のんびりする時間と<br>素早く動く時間を意識するとyummyなことが起こるかも！",
+                en: "Balance relaxing and fast-moving time<br>for a yummy day!",
+                ko: "느긋한 시간과 빠르게 움직이는 시간을<br>의식하면 맛있는 일이 생길지도!",
+                zh: "意識到悠閒時光與快速行動時間的平衡，<br>好事就會發生！"
+            },
+            food: { ja: "ハンバーガーとフライドポテト", en: "Burger and Fries", ko: "햄버거와 감자튀김", zh: "漢堡與炸薯條" },
+            img: "2bogochi.JPG",
+            wallpaper: "wallpaper2.PNG",
+            weight: 19
+        },
+        {
+            name: { ja: "ホップ&プディ吉", en: "Hop＆Puddi Luck", ko: "Hop＆Puddi 길(吉)", zh: "Hop＆Puddi 吉" },
+            desc: { 
+                ja: "新しいアクセサリーやヘアスタイルを試してみると<br>yummyな気持ちになれるかも！",
+                en: "Try new accessories or a hairstyle<br>to feel yummy!",
+                ko: "새로운 액세서리나 헤어스타일을 시도해보면<br>맛있는 기분이 들지도!",
+                zh: "嘗試新的配件或髮型，<br>心情會變得很美味！"
+            },
+            food: { ja: "甘い飲み物とプリン", en: "Sweet Drinks and Pudding", ko: "달콤한 음료와 푸딩", zh: "甜飲與布丁" },
+            img: "3hoppuddi.JPG",
+            wallpaper: "wallpaper3.png",
+            weight: 19
+        },
+        {
+            name: { ja: "ココ&ビビ吉", en: "Coco＆Bibi Luck", ko: "Coco＆Bibi 길(吉)", zh: "Coco＆Bibi 吉" },
+            desc: { 
+                ja: "甘いものを食べてリフレッシュ！<br>スキンケアを意識するとyummyでビューティーに！",
+                en: "Refresh with sweets!<br>Focus on skincare for a yummy, beauty day.",
+                ko: "단 것을 먹고 리프레시!<br>스킨케어에 신경 쓰면 맛있고 뷰티해질 거야!",
+                zh: "吃甜食放鬆一下！<br>注重皮膚保養會變得美味又美麗！"
+            },
+            food: { ja: "ココアクッキーとミルクビスケット", en: "Cocoa Cookies and Milk Biscuits", ko: "코코아 쿠키와 밀크 비スケット", zh: "可可餅乾與牛奶餅乾" },
+            img: "4cocobibi.JPG",
+            wallpaper: "wallpaper4.png",
+            weight: 19
+        },
+        {
+            name: { ja: "ホッティ・ドギィ&ステゴ吉", en: "Hotty-Doggy&Stego Luck", ko: "Hotty-Doggy&Stego 길(吉)", zh: "Hotty-Doggy&Stego 吉" },
+            desc: { 
+                ja: "音楽を聴いたり歌ったりすると<br>yummyな運気がアップするかも！",
+                en: "Listen to music or sing<br>to boost your yummy luck!",
+                ko: "음악을 듣거나 노래를 부르면<br>맛있는 운세가 올라갈지도!",
+                zh: "聽音樂或唱歌，<br>美味運勢會上升哦！"
+            },
+            food: { ja: "ホットドッグとロールパン", en: "Hot Dogs and Rolls", ko: "핫도그와 롤빵", zh: "熱狗與餐包" },
+            img: "5doggyste.JPG",
+            wallpaper: "wallpaper5.png",
+            weight: 19
+        },
+        {
+            name: { ja: "スーパードゥーパーyumyum吉！", en: "Super Duper yumyum Luck!", ko: "슈퍼 두퍼 yumyum 길(吉)!", zh: "超級無敵 yumyum 吉！" },
+            desc: { 
+                ja: "何もかも完璧！黄金のケチャとオムが<br>ハチャメチャな幸運を運んきてくれるかも！",
+                en: "Everything is perfect!<br>Golden Kecha and Omu will bring crazy luck!",
+                ko: "모든 것이 완벽해!<br>황금 케차와 오무가 엄청난 행운을 가져다줄지도!",
+                zh: "萬事完美！<br>黃金茄汁與歐姆會為你帶來超級幸運！"
+            },
+            food: { ja: "黄金のオムライス", en: "Golden Omurice", ko: "황금 오므라이스", zh: "黃金蛋包飯" },
+            img: "6supper.JPG",
+            wallpaper: "wallpaper6.png",
+            weight: 5
+        }
+    ];
+
+    let currentLang = 'ja';
+    let currentResult = null;
+
+    function setLanguage(lang) {
+        currentLang = lang;
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.classList.remove('active');
+            const targetText = lang === 'zh' ? 'TW' : lang === 'ja' ? 'JP' : lang === 'ko' ? 'KR' : 'EN';
+            if(btn.innerText === targetText) btn.classList.add('active');
+        });
+
+        const t = i18n[lang];
+        // 各要素のテキストを更新
+        document.getElementById('ui-main-subtitle').innerText = t.mainSubtitle;
+        document.getElementById('ui-title').innerHTML = t.title;
+        document.getElementById('ui-intro').innerHTML = t.intro;
+        document.getElementById('draw-btn').innerText = t.drawBtn;
+        document.getElementById('ui-res-subtitle').innerText = t.resSubtitle;
+        document.getElementById('ui-lucky-food-label').innerHTML = t.luckyLabel;
+        document.getElementById('download-link').innerText = t.download;
+        document.getElementById('ui-share-msg').innerHTML = t.share;
+        document.getElementById('ui-retry-btn').innerText = t.retry;
+
+        if (currentResult) updateResultTexts();
+    }
+
+    function updateResultTexts() {
+        document.getElementById('res-name').innerHTML = currentResult.name[currentLang];
+        document.getElementById('res-desc').innerHTML = currentResult.desc[currentLang];
+        document.getElementById('res-food').innerHTML = currentResult.food[currentLang];
+    }
+
+    function startDrawing() {
+        const btn = document.getElementById('draw-btn');
+        const boxImg = document.getElementById('omikuji-img');
+        if(btn.disabled) return;
+
+        boxImg.classList.add('shake');
+        btn.disabled = true;
+        btn.innerText = i18n[currentLang].drawing;
+
+        setTimeout(() => {
+            currentResult = getWeightedResult();
+            showResult(currentResult);
+        }, 2000); 
+    }
+
+    function getWeightedResult() {
+        const totalWeight = fortunes.reduce((sum, f) => sum + f.weight, 0);
+        let random = Math.random() * totalWeight;
+        for (const fortune of fortunes) {
+            if (random < fortune.weight) return fortune;
+            random -= fortune.weight;
+        }
+        return fortunes[0];
+    }
+
+    function showResult(res) {
+        document.getElementById('main-view').style.display = 'none';
+        document.getElementById('result-area').style.display = 'block';
+        updateResultTexts();
+        document.getElementById('res-img').src = res.img;
+        document.getElementById('download-link').href = res.wallpaper;
+    }
+
+    document.getElementById('draw-btn').addEventListener('click', startDrawing);
+    document.getElementById('box-container').addEventListener('click', startDrawing);
+</script>
+
+</body>
+</html>
